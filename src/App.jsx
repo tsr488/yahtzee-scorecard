@@ -232,7 +232,7 @@ const Scorecard = ({
             <td style={{ 
               padding: '6px 4px', 
               border: '1px solid #ddd'
-            }}>➜ Upper Total</td>
+            }}>→ Upper Total</td>
             {players.map(player => {
               const earned = hasEarnedBonus(scores[player] || {})
               return (
@@ -330,7 +330,7 @@ const Scorecard = ({
             <td style={{ 
               padding: '6px 4px', 
               border: '1px solid #ddd'
-            }}>➜ Lower Total</td>
+            }}>→ Lower Total</td>
             {players.map(player => (
               <td key={player} style={{ 
                 padding: '6px 4px', 
