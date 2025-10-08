@@ -22,7 +22,6 @@ const YAHTZEE_CATEGORIES = [
 // Setup Screen Component (moved outside to prevent recreation)
 const SetupScreen = ({ 
   roomName, 
-  handleRoomNameChange, 
   playerName, 
   handlePlayerNameChange, 
   handlePlayerNameKeyPress, 
@@ -32,30 +31,10 @@ const SetupScreen = ({
   startGame 
 }) => (
   <div style={{ maxWidth: 600, margin: '0 auto', padding: 20 }}>
-    <h1 style={{ textAlign: 'center', color: '#2c3e50', marginBottom: 30 }}>🎲 Trogan ScoreSync</h1>
+    <h1 style={{ textAlign: 'center', color: '#2c3e50', marginBottom: 30 }}>🎲 {roomName}</h1>
     
     <div style={{ marginBottom: 30 }}>
-      <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>
-        Room Name:
-      </label>
-      <input
-        type="text"
-        value={roomName}
-        onChange={handleRoomNameChange}
-        style={{ 
-          width: '100%', 
-          padding: 12, 
-          border: '2px solid #ddd', 
-          borderRadius: 8,
-          fontSize: 16
-        }}
-      />
-    </div>
-
-    <div style={{ marginBottom: 30 }}>
-      <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>
-        Add Player:
-      </label>
+      <h3>Add Player:</h3>
       <div style={{ display: 'flex', gap: 10, marginBottom: 15 }}>
         <input
           type="text"
@@ -68,7 +47,7 @@ const SetupScreen = ({
             padding: 12, 
             border: '2px solid #ddd', 
             borderRadius: 8,
-            fontSize: 16
+            fontSize: 18
           }}
         />
         <button
@@ -101,7 +80,7 @@ const SetupScreen = ({
                 marginBottom: 5,
                 borderRadius: 5
               }}>
-                <span style={{ fontSize: 16 }}>{player}</span>
+                <span style={{ fontSize: 18 }}>{player}</span>
                 <button
                   onClick={() => removePlayer(player)}
                   style={{
@@ -109,9 +88,9 @@ const SetupScreen = ({
                     color: 'white',
                     border: 'none',
                     borderRadius: 4,
-                    padding: '5px 10px',
+                    padding: '10px 10px',
                     cursor: 'pointer',
-                    fontSize: 14
+                    fontSize: 16
                   }}
                 >
                   Remove
@@ -128,12 +107,12 @@ const SetupScreen = ({
       disabled={players.length === 0}
       style={{
         width: '100%',
-        padding: 15,
+        padding: 18,
         backgroundColor: players.length > 0 ? '#27ae60' : '#bdc3c7',
         color: 'white',
         border: 'none',
         borderRadius: 8,
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         cursor: players.length > 0 ? 'pointer' : 'not-allowed'
       }}
@@ -166,7 +145,7 @@ const Scorecard = ({
       flexWrap: 'wrap',
       gap: 10
     }}>
-      <h1 style={{ margin: 0, color: '#2c3e50', fontSize: 'clamp(18px, 4vw, 24px)' }}>🎲 {roomName}</h1>
+      <h1 style={{ margin: 0, color: '#2c3e50', fontSize: '28px' }}>🎲 {roomName}</h1>
     </div>
 
     <div style={{ overflowX: 'auto', marginBottom: 20 }}>
@@ -176,16 +155,16 @@ const Scorecard = ({
         minWidth: Math.max(400, players.length * 100 + 150),
         backgroundColor: 'white',
         border: '2px solid #ddd',
-        fontSize: 'clamp(12px, 2.5vw, 14px)'
+        fontSize: '16px'
       }}>
         <thead>
           <tr style={{ backgroundColor: '#34495e', color: 'white' }}>
             <th style={{ 
               padding: '8px 4px', 
-              textAlign: 'left', 
+              textAlign: 'center', 
               border: '1px solid #ddd',
               minWidth: 120,
-              fontSize: 'clamp(11px, 2.5vw, 13px)'
+              fontSize: '16px'
             }}>Category</th>
             {players.map(player => (
               <th key={player} style={{ 
@@ -193,7 +172,7 @@ const Scorecard = ({
                 textAlign: 'center', 
                 border: '1px solid #ddd',
                 minWidth: 70,
-                fontSize: 'clamp(11px, 2.5vw, 13px)',
+                fontSize: '16px',
                 wordBreak: 'break-word'
               }}>
                 {player}
@@ -208,7 +187,7 @@ const Scorecard = ({
               padding: 6, 
               fontWeight: 'bold', 
               textAlign: 'center',
-              fontSize: 'clamp(11px, 2.5vw, 13px)'
+              fontSize: '18px'
             }}>
               UPPER SECTION
             </td>
@@ -219,7 +198,7 @@ const Scorecard = ({
                 padding: '6px 4px', 
                 border: '1px solid #ddd', 
                 fontWeight: 'bold',
-                fontSize: 'clamp(11px, 2.5vw, 13px)'
+                fontSize: '16px'
               }}>
                 {category.name}
               </td>
@@ -240,7 +219,7 @@ const Scorecard = ({
                       border: '1px solid #ccc',
                       borderRadius: 4,
                       textAlign: 'center',
-                      fontSize: 'clamp(14px, 3vw, 16px)',
+                      fontSize: '16px',
                       minHeight: 36,
                       boxSizing: 'border-box'
                     }}
@@ -257,14 +236,14 @@ const Scorecard = ({
             <td style={{ 
               padding: '8px 4px', 
               border: '1px solid #ddd',
-              fontSize: 'clamp(11px, 2.5vw, 13px)'
-            }}>Upper Total</td>
+              fontSize: '16px'
+            }}>➜ Upper Total</td>
             {players.map(player => (
               <td key={player} style={{ 
                 padding: '8px 4px', 
                 border: '1px solid #ddd', 
                 textAlign: 'center',
-                fontSize: 'clamp(12px, 2.8vw, 14px)'
+                fontSize: '18px'
               }}>
                 {calculateUpperTotal(scores[player] || {})}
               </td>
@@ -274,14 +253,14 @@ const Scorecard = ({
             <td style={{ 
               padding: '8px 4px', 
               border: '1px solid #ddd',
-              fontSize: 'clamp(10px, 2.2vw, 12px)'
-            }}>Bonus (if ≥ 63)</td>
+              fontSize: '16px'
+            }}>➜ Bonus (if ≥ 63)</td>
             {players.map(player => (
               <td key={player} style={{ 
                 padding: '8px 4px', 
                 border: '1px solid #ddd', 
                 textAlign: 'center',
-                fontSize: 'clamp(12px, 2.8vw, 14px)'
+                fontSize: '16px'
               }}>
                 {calculateUpperBonus(scores[player] || {})}
               </td>
@@ -294,7 +273,7 @@ const Scorecard = ({
               padding: 6, 
               fontWeight: 'bold', 
               textAlign: 'center',
-              fontSize: 'clamp(11px, 2.5vw, 13px)'
+              fontSize: '18px'
             }}>
               LOWER SECTION
             </td>
@@ -305,7 +284,7 @@ const Scorecard = ({
                 padding: '6px 4px', 
                 border: '1px solid #ddd', 
                 fontWeight: 'bold',
-                fontSize: 'clamp(10px, 2.2vw, 12px)'
+                fontSize: '16px'
               }}>
                 {category.name}
               </td>
@@ -326,7 +305,7 @@ const Scorecard = ({
                       border: '1px solid #ccc',
                       borderRadius: 4,
                       textAlign: 'center',
-                      fontSize: 'clamp(14px, 3vw, 16px)',
+                      fontSize: '16px',
                       minHeight: 36,
                       boxSizing: 'border-box'
                     }}
@@ -343,14 +322,14 @@ const Scorecard = ({
             <td style={{ 
               padding: '8px 4px', 
               border: '1px solid #ddd',
-              fontSize: 'clamp(11px, 2.5vw, 13px)'
-            }}>Lower Total</td>
+              fontSize: '16px'
+            }}>➜ Lower Total</td>
             {players.map(player => (
               <td key={player} style={{ 
                 padding: '8px 4px', 
                 border: '1px solid #ddd', 
                 textAlign: 'center',
-                fontSize: 'clamp(12px, 2.8vw, 14px)'
+                fontSize: '18px'
               }}>
                 {calculateLowerTotal(scores[player] || {})}
               </td>
@@ -362,14 +341,14 @@ const Scorecard = ({
             <td style={{ 
               padding: '10px 4px', 
               border: '1px solid #ddd',
-              fontSize: 'clamp(12px, 2.8vw, 15px)'
+              fontSize: '18px'
             }}>GRAND TOTAL</td>
             {players.map(player => (
               <td key={player} style={{ 
                 padding: '10px 4px', 
                 border: '1px solid #ddd', 
                 textAlign: 'center',
-                fontSize: 'clamp(14px, 3.2vw, 18px)'
+                fontSize: '18px'
               }}>
                 {calculateGrandTotal(scores[player] || {})}
               </td>
@@ -380,7 +359,7 @@ const Scorecard = ({
     </div>
 
     {/* Clear Game Button */}
-    <div style={{ textAlign: 'center', marginTop: 20 }}>
+    <div style={{ textAlign: 'center', marginTop: 40 }}>
       <button
         onClick={handleClearGame}
         style={{
@@ -402,7 +381,7 @@ const Scorecard = ({
 
 export default function App() {
   const [gameState, setGameState] = useState('setup') // 'setup' or 'playing'
-  const [roomName, setRoomName] = useState('My Game')
+  const [roomName, setRoomName] = useState('Dice Guy By Trogan')
   const [playerName, setPlayerName] = useState('')
   const [players, setPlayers] = useState([])
   const [scores, setScores] = useState({})
@@ -420,7 +399,7 @@ export default function App() {
     if (savedRoomName) setRoomName(savedRoomName)
   }, [])
 
-  // Save to localStorage whenever game state changes (debounced for roomName)
+  // Save to localStorage whenever game state changes
   useEffect(() => {
     localStorage.setItem('yahtzee-game-state', gameState)
     localStorage.setItem('yahtzee-players', JSON.stringify(players))
@@ -563,10 +542,6 @@ export default function App() {
   }, [updateScore])
 
   // Event handlers
-  const handleRoomNameChange = useCallback((e) => {
-    setRoomName(e.target.value)
-  }, [])
-
   const handlePlayerNameChange = useCallback((e) => {
     setPlayerName(e.target.value)
   }, [])
@@ -584,7 +559,7 @@ export default function App() {
       setGameState('setup')
       setPlayers([])
       setScores({})
-      setRoomName('My Game')
+      setRoomName('Dice Guy By Trogan')
     }
   }, [])
 
@@ -605,7 +580,6 @@ export default function App() {
       {gameState === 'setup' ? (
         <SetupScreen 
           roomName={roomName}
-          handleRoomNameChange={handleRoomNameChange}
           playerName={playerName}
           handlePlayerNameChange={handlePlayerNameChange}
           handlePlayerNameKeyPress={handlePlayerNameKeyPress}
