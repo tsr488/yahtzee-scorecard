@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 // Yahtzee categories in order
 const YAHTZEE_CATEGORIES = [
@@ -13,11 +13,18 @@ const YAHTZEE_CATEGORIES = [
   { id: 'threeOfKind', name: '3 of a Kind', section: 'lower' },
   { id: 'fourOfKind', name: '4 of a Kind', section: 'lower' },
   { id: 'fullHouse', name: 'Full House (25)', section: 'lower' },
-  { id: 'smallStraight', name: 'Small Straight (30)', section: 'lower' },
-  { id: 'largeStraight', name: 'Large Straight (40)', section: 'lower' },
+  { id: 'smallStraight', name: 'Sm. Straight (30)', section: 'lower' },
+  { id: 'largeStraight', name: 'Lg. Straight (40)', section: 'lower' },
   { id: 'yahtzee', name: 'Yahtzee (50)', section: 'lower' },
   { id: 'chance', name: 'Chance', section: 'lower' }
 ]
+
+// Helper function to check if all players have filled a score for a category
+const isRowComplete = (players, scores, categoryId) => {
+  return players.every(player => 
+    scores[player] && scores[player][categoryId] !== null && scores[player][categoryId] !== undefined
+  )
+}
 
 // Setup Screen Component (moved outside to prevent recreation)
 const SetupScreen = ({ 
@@ -123,36 +130,24 @@ const SetupScreen = ({
 )
 
 // Scorecard Component (moved outside to prevent recreation)
-const Scorecard = ({ 
-  roomName, 
+const Scorecard = ({
   players, 
   scores, 
   updateScore, 
-  calculateUpperTotal, 
-  calculateUpperBonus, 
+  calculateUpperTotal,
   calculateLowerTotal, 
   calculateGrandTotal,
   handleClearGame,
   handleScoreInput,
-  handleScoreKeyPress
+  handleScoreKeyPress,
+  getPointsNeededForBonus,
+  hasEarnedBonus
 }) => (
-  <div style={{ padding: '10px' }}>
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      marginBottom: 20,
-      flexWrap: 'wrap',
-      gap: 10
-    }}>
-      <h1 style={{ margin: 0, color: '#2c3e50', fontSize: '28px' }}>🎲 {roomName}</h1>
-    </div>
-
+  <div style={{ padding: '8px' }}>
     <div style={{ overflowX: 'auto', marginBottom: 20 }}>
       <table style={{ 
         width: '100%', 
         borderCollapse: 'collapse',
-        minWidth: Math.max(400, players.length * 100 + 150),
         backgroundColor: 'white',
         border: '2px solid #ddd',
         fontSize: '16px'
@@ -163,17 +158,14 @@ const Scorecard = ({
               padding: '8px 4px', 
               textAlign: 'center', 
               border: '1px solid #ddd',
-              minWidth: 120,
-              fontSize: '16px'
-            }}>Category</th>
+              minWidth: 150
+            }}></th>
             {players.map(player => (
               <th key={player} style={{ 
                 padding: '8px 4px', 
                 textAlign: 'center', 
                 border: '1px solid #ddd',
-                minWidth: 70,
-                fontSize: '16px',
-                wordBreak: 'break-word'
+                minWidth: 60
               }}>
                 {player}
               </th>
@@ -184,21 +176,24 @@ const Scorecard = ({
           {/* Upper Section */}
           <tr style={{ backgroundColor: '#ecf0f1' }}>
             <td colSpan={players.length + 1} style={{ 
-              padding: 6, 
+              padding: 4, 
               fontWeight: 'bold', 
-              textAlign: 'center',
-              fontSize: '18px'
+              textAlign: 'center'
             }}>
               UPPER SECTION
             </td>
           </tr>
-          {YAHTZEE_CATEGORIES.filter(cat => cat.section === 'upper').map(category => (
-            <tr key={category.id}>
+          {YAHTZEE_CATEGORIES.filter(cat => cat.section === 'upper').map(category => {
+            const rowComplete = isRowComplete(players, scores, category.id)
+            return (
+            <tr key={category.id} style={{ 
+              backgroundColor: rowComplete ? '#e8e8e8' : 'transparent',
+              opacity: rowComplete ? 0.7 : 1 
+            }}>
               <td style={{ 
                 padding: '6px 4px', 
                 border: '1px solid #ddd', 
-                fontWeight: 'bold',
-                fontSize: '16px'
+                fontWeight: 'bold'
               }}>
                 {category.name}
               </td>
@@ -206,6 +201,8 @@ const Scorecard = ({
                 <td key={player} style={{ padding: 2, border: '1px solid #ddd', textAlign: 'center' }}>
                   <input
                     type="number"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
                     value={scores[player]?.[category.id] !== null ? scores[player][category.id] : ''}
                     onChange={(e) => updateScore(player, category.id, e.target.value)}
                     onKeyPress={handleScoreKeyPress}
@@ -219,7 +216,6 @@ const Scorecard = ({
                       border: '1px solid #ccc',
                       borderRadius: 4,
                       textAlign: 'center',
-                      fontSize: '16px',
                       minHeight: 36,
                       boxSizing: 'border-box'
                     }}
@@ -229,62 +225,73 @@ const Scorecard = ({
                 </td>
               ))}
             </tr>
-          ))}
+          )})}
           
           {/* Upper Section Totals */}
           <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
             <td style={{ 
-              padding: '8px 4px', 
-              border: '1px solid #ddd',
-              fontSize: '16px'
+              padding: '6px 4px', 
+              border: '1px solid #ddd'
             }}>➜ Upper Total</td>
-            {players.map(player => (
-              <td key={player} style={{ 
-                padding: '8px 4px', 
-                border: '1px solid #ddd', 
-                textAlign: 'center',
-                fontSize: '18px'
-              }}>
-                {calculateUpperTotal(scores[player] || {})}
-              </td>
-            ))}
+            {players.map(player => {
+              const earned = hasEarnedBonus(scores[player] || {})
+              return (
+                <td key={player} style={{ 
+                  padding: '6px 4px', 
+                  border: '1px solid #ddd', 
+                  textAlign: 'center',
+                  backgroundColor: earned ? '#d4edda' : '#f8f9fa',
+                  color: earned ? '#155724' : 'inherit'
+                }}>
+                  {calculateUpperTotal(scores[player] || {})}
+                </td>
+              )
+            })}
           </tr>
-          <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
+          
+          {/* Points needed for bonus row */}
+          <tr style={{ backgroundColor: '#fff3cd', fontSize: '13px', fontStyle: 'italic' }}>
             <td style={{ 
-              padding: '8px 4px', 
-              border: '1px solid #ddd',
-              fontSize: '16px'
-            }}>➜ Bonus (if ≥ 63)</td>
-            {players.map(player => (
-              <td key={player} style={{ 
-                padding: '8px 4px', 
-                border: '1px solid #ddd', 
-                textAlign: 'center',
-                fontSize: '16px'
-              }}>
-                {calculateUpperBonus(scores[player] || {})}
-              </td>
-            ))}
+              padding: '4px', 
+              border: '1px solid #ddd'
+            }}>pts needed for bonus:</td>
+            {players.map(player => {
+              const pointsNeeded = getPointsNeededForBonus(scores[player] || {})
+              const earned = hasEarnedBonus(scores[player] || {})
+              return (
+                <td key={player} style={{ 
+                  padding: '4px', 
+                  border: '1px solid #ddd', 
+                  textAlign: 'center',
+                  color: earned ? '#28a745' : pointsNeeded <= 10 ? '#fd7e14' : '#4a4e52ff'
+                }}>
+                  {earned ? '✓ Earned!' : pointsNeeded}
+                </td>
+              )
+            })}
           </tr>
 
           {/* Lower Section */}
           <tr style={{ backgroundColor: '#ecf0f1' }}>
             <td colSpan={players.length + 1} style={{ 
-              padding: 6, 
+              padding: 4, 
               fontWeight: 'bold', 
-              textAlign: 'center',
-              fontSize: '18px'
+              textAlign: 'center'
             }}>
               LOWER SECTION
             </td>
           </tr>
-          {YAHTZEE_CATEGORIES.filter(cat => cat.section === 'lower').map(category => (
-            <tr key={category.id}>
+          {YAHTZEE_CATEGORIES.filter(cat => cat.section === 'lower').map(category => {
+            const rowComplete = isRowComplete(players, scores, category.id)
+            return (
+            <tr key={category.id} style={{ 
+              backgroundColor: rowComplete ? '#e8e8e8' : 'transparent',
+              opacity: rowComplete ? 0.7 : 1 
+            }}>
               <td style={{ 
                 padding: '6px 4px', 
                 border: '1px solid #ddd', 
-                fontWeight: 'bold',
-                fontSize: '16px'
+                fontWeight: 'bold'
               }}>
                 {category.name}
               </td>
@@ -292,6 +299,8 @@ const Scorecard = ({
                 <td key={player} style={{ padding: 2, border: '1px solid #ddd', textAlign: 'center' }}>
                   <input
                     type="number"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
                     value={scores[player]?.[category.id] !== null ? scores[player][category.id] : ''}
                     onChange={(e) => updateScore(player, category.id, e.target.value)}
                     onKeyPress={handleScoreKeyPress}
@@ -305,7 +314,6 @@ const Scorecard = ({
                       border: '1px solid #ccc',
                       borderRadius: 4,
                       textAlign: 'center',
-                      fontSize: '16px',
                       minHeight: 36,
                       boxSizing: 'border-box'
                     }}
@@ -315,21 +323,19 @@ const Scorecard = ({
                 </td>
               ))}
             </tr>
-          ))}
+          )})}
 
           {/* Lower Section Total */}
           <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
             <td style={{ 
-              padding: '8px 4px', 
-              border: '1px solid #ddd',
-              fontSize: '16px'
+              padding: '6px 4px', 
+              border: '1px solid #ddd'
             }}>➜ Lower Total</td>
             {players.map(player => (
               <td key={player} style={{ 
-                padding: '8px 4px', 
+                padding: '6px 4px', 
                 border: '1px solid #ddd', 
-                textAlign: 'center',
-                fontSize: '18px'
+                textAlign: 'center'
               }}>
                 {calculateLowerTotal(scores[player] || {})}
               </td>
@@ -337,18 +343,16 @@ const Scorecard = ({
           </tr>
 
           {/* Grand Total */}
-          <tr style={{ backgroundColor: '#2c3e50', color: 'white', fontWeight: 'bold' }}>
+          <tr style={{ backgroundColor: '#2c3e50', color: 'white', fontWeight: 'bold', fontSize: '20px' }}>
             <td style={{ 
-              padding: '10px 4px', 
-              border: '1px solid #ddd',
-              fontSize: '18px'
+              padding: '8px 4px', 
+              border: '1px solid #ddd'
             }}>GRAND TOTAL</td>
             {players.map(player => (
               <td key={player} style={{ 
-                padding: '10px 4px', 
+                padding: '8px 4px', 
                 border: '1px solid #ddd', 
-                textAlign: 'center',
-                fontSize: '18px'
+                textAlign: 'center'
               }}>
                 {calculateGrandTotal(scores[player] || {})}
               </td>
@@ -432,6 +436,17 @@ export default function App() {
     return calculateUpperTotal(playerScores) >= 63 ? 35 : 0
   }, [calculateUpperTotal])
 
+  // Calculate how many points needed for upper bonus
+  const getPointsNeededForBonus = useCallback((playerScores) => {
+    const currentTotal = calculateUpperTotal(playerScores)
+    return currentTotal >= 63 ? 0 : 63 - currentTotal
+  }, [calculateUpperTotal])
+
+  // Check if player has earned the bonus
+  const hasEarnedBonus = useCallback((playerScores) => {
+    return calculateUpperTotal(playerScores) >= 63
+  }, [calculateUpperTotal])
+
   // Calculate lower section total for a player
   const calculateLowerTotal = useCallback((playerScores) => {
     const lowerCategories = ['threeOfKind', 'fourOfKind', 'fullHouse', 'smallStraight', 'largeStraight', 'yahtzee', 'chance']
@@ -511,17 +526,18 @@ export default function App() {
 
   // Handle key press to prevent invalid characters
   const handleScoreKeyPress = useCallback((e) => {
-    // Allow: backspace, delete, tab, escape, enter
-    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-        (e.keyCode === 65 && e.ctrlKey === true) ||
-        (e.keyCode === 67 && e.ctrlKey === true) ||
-        (e.keyCode === 86 && e.ctrlKey === true) ||
-        (e.keyCode === 88 && e.ctrlKey === true)) {
+    // Allow: backspace, delete, tab, escape, enter, arrow keys
+    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || 
+        e.key === 'Escape' || e.key === 'Enter' || e.key === 'ArrowLeft' || 
+        e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       return
     }
-    // Ensure that it is a number, otherwise stop the keypress
-    if (e.key < 0 || e.key > 9) {
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+    if (e.ctrlKey && (e.key === 'a' || e.key === 'c' || e.key === 'v' || e.key === 'x' || e.key === 'z')) {
+      return
+    }
+    // Only allow digits 0-9
+    if (!/^[0-9]$/.test(e.key)) {
       e.preventDefault()
     }
   }, [])
@@ -590,17 +606,17 @@ export default function App() {
         />
       ) : (
         <Scorecard 
-          roomName={roomName}
           players={players}
           scores={scores}
           updateScore={updateScore}
           calculateUpperTotal={calculateUpperTotal}
-          calculateUpperBonus={calculateUpperBonus}
           calculateLowerTotal={calculateLowerTotal}
           calculateGrandTotal={calculateGrandTotal}
           handleClearGame={handleClearGame}
           handleScoreInput={handleScoreInput}
           handleScoreKeyPress={handleScoreKeyPress}
+          getPointsNeededForBonus={getPointsNeededForBonus}
+          hasEarnedBonus={hasEarnedBonus}
         />
       )}
     </div>
