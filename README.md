@@ -2,7 +2,7 @@
 
 A mobile-friendly digital scorecard that replaces paper Yahtzee scorecards. Built for friends and families who want instant, error-free score tracking during game night.
 
-**[Live App →](https://icy-pond-05f8b280f.azurestaticapps.net)**
+**[Live App →](https://icy-pond-05f8b280f.2.azurestaticapps.net)**
 
 ## Features
 
